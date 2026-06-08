@@ -1,5 +1,7 @@
 using UnityEngine;
+using System.Collections; 
 using System.Collections.Generic;
+using UnityEngine.SceneManagement; 
 
 public class GameplayManager : MonoBehaviour
 {
@@ -25,8 +27,21 @@ public class GameplayManager : MonoBehaviour
     [Header("--- Queue List (Isi 5 Monster Berurutan) ---")]
     [SerializeField] private List<Monster> monsterQueue = new List<Monster>();
 
-    // List internal sakti buat nyatet susunan 5 monster asli lu pas awal game
     private List<Monster> masterMonsterList = new List<Monster>();
+
+    [Header("--- Boss System ---")]
+    public int currentLoopCount = 0;
+    public int loopsRequiredForBoss = 5; 
+
+    [Tooltip("Tarik objek Tombol Boss lu ke sini")]
+    [SerializeField] private GameObject buttonBoss;
+
+    [Tooltip("Ketik nama scene bos lu. Huruf besar/kecil WAJIB SAMA!")]
+    [SerializeField] private string bossSceneName = "scene_boss";
+
+    [Header("--- Death Screen ---")]
+    [Tooltip("Tarik Panel layar gelap/merah lu ke sini")]
+    [SerializeField] private GameObject deathPanel;
 
     private void Awake()
     {
@@ -36,23 +51,21 @@ public class GameplayManager : MonoBehaviour
 
     void Start()
     {
-        // Catat dan kunci susunan 5 monster yang lu susun manual di Hierarchy
         masterMonsterList = new List<Monster>(monsterQueue);
         SetMapMovement(true);
+
+        if (buttonBoss != null) buttonBoss.SetActive(false);
+        if (deathPanel != null) deathPanel.SetActive(false);
     }
 
     void Update()
     {
-        // SISTEM DETEKSI ASLI LU: Menggunakan Jarak Riil (Distance), bukan koordinat X mentah
         if (monsterQueue.Count > 0 && IsMapMoving)
         {
-            // Pastikan objek monster pertama tidak kosong/null dan sedang aktif
             if (monsterQueue[0] != null && playerTransform != null && monsterQueue[0].gameObject.activeSelf)
             {
-                // Hitung jarak asli antara koordinat Player dan Monster pertama
                 float realDistance = Vector3.Distance(playerTransform.position, monsterQueue[0].transform.position);
 
-                // Game HANYA BOLEH berhenti dan attack jika jarak mereka sudah benar-benar dekat!
                 if (realDistance <= attackDistanceThreshold)
                 {
                     TriggerBattleState();
@@ -63,17 +76,15 @@ public class GameplayManager : MonoBehaviour
 
     private void TriggerBattleState()
     {
-        SetMapMovement(false); // Semua background otomatis berhenti
-        if (playerAnimator != null) playerAnimator.SetBool("isAttacking", true); // Player memukul
+        SetMapMovement(false); 
+        if (playerAnimator != null) playerAnimator.SetBool("isAttacking", true); 
 
         if (monsterQueue.Count > 0 && monsterQueue[0] != null)
         {
             monsterQueue[0].StartFighting();
 
-            // AMBIL SCRIPT PLAYERSTATUS YANG ADA DI BADAN PLAYER
             PlayerStatus playerStatus = playerTransform.GetComponent<PlayerStatus>();
 
-            // PICU SISTEM PERTEMPURAN REAL-TIME OTOMATIS DI SINI!
             if (BattleSystem.Instance != null && playerStatus != null)
             {
                 BattleSystem.Instance.StartBattle(playerStatus, monsterQueue[0]);
@@ -83,45 +94,50 @@ public class GameplayManager : MonoBehaviour
 
     public void OnMonsterDefeated()
     {
-        // MATIKAN BATTLE SYSTEM KARENA MUSUHNYA SUDAH MATI
         if (BattleSystem.Instance != null) BattleSystem.Instance.EndBattle();
+
+        PlayerStatus playerStatus = playerTransform.GetComponent<PlayerStatus>();
+        if (playerStatus != null)
+        {
+            playerStatus.currentContamination = Mathf.Min(100f, playerStatus.currentContamination + 0.1f);
+        }
 
         if (monsterQueue.Count > 0) monsterQueue.RemoveAt(0);
 
         if (monsterQueue.Count > 0)
         {
-            SetMapMovement(true); // Jalan lagi nyamperin monster ke-2
+            SetMapMovement(true); 
             if (playerAnimator != null) playerAnimator.SetBool("isAttacking", false);
         }
         else
         {
-            // Pas monster ke-5 mampus, map jalan kosong nungguin background map nge-loop
             Debug.Log("Semua kloter monster mampus! Jalan terus nunggu map looping.");
             SetMapMovement(true);
             if (playerAnimator != null) playerAnimator.SetBool("isAttacking", false);
         }
     }
 
-    // ========================================================
-    // SAKTI: FUNGSI BARU UNTUK SPAWN LOOPING MONSTER HIERARCHY
-    // ========================================================
-    /// <summary>
-    /// PANGGIL FUNGSI INI DI SCRIPT BACKGROUND LU PAS GAMBARNYA RESET NGE-LOOP!
-    /// </summary>
     public void OnMapLoopTriggered()
     {
+        currentLoopCount++;
+        Debug.Log($"[LOOPING] Map nge-reset! Ini loop ke-{currentLoopCount}");
+
+        if (currentLoopCount >= loopsRequiredForBoss)
+        {
+            if (buttonBoss != null) buttonBoss.SetActive(true);
+            Debug.Log("[BOSS] Syarat terpenuhi! Tombol Boss Terbuka!");
+        }
+
         Debug.Log("[LOOPING] Map nge-reset! Bangkitkan kembali 5 monster di posisi semula!");
 
-        // 1. Kosongkan sisa antrean lama biar steril
         monsterQueue.Clear();
 
-        // 2. Loop list master cadangan, bangkitkan kodenya, dan masukin antrean lagi berurutan
         foreach (Monster m in masterMonsterList)
         {
             if (m != null)
             {
-                m.ResetMonster(); // Teleport balik, isi darah penuh, set aktif true!
-                monsterQueue.Add(m); // Antre lagi buat digebuk player
+                m.ResetMonster(); 
+                monsterQueue.Add(m); 
             }
         }
 
@@ -130,23 +146,45 @@ public class GameplayManager : MonoBehaviour
 
     public void OnPlayerDeath()
     {
+        StartCoroutine(DeathSequenceRoutine());
+    }
+
+    private IEnumerator DeathSequenceRoutine()
+    {
         if (BattleSystem.Instance != null) BattleSystem.Instance.EndBattle();
         SetMapMovement(false);
+        if (playerAnimator != null) playerAnimator.SetBool("isAttacking", false);
 
-        // Reset semua background yang didaftarkan
+        // SAKTI: Auto save sebagai checkpoint pas lu mati di lantai normal
+        if (SaveManager.Instance != null) SaveManager.Instance.SaveGame();
+
+        if (deathPanel != null) deathPanel.SetActive(true);
+
+        currentLoopCount = 0;
+        if (buttonBoss != null) buttonBoss.SetActive(false);
+        Debug.Log("[DEATH] Player Mati! Layar gelap, progres loop hangus cok!");
+
+        yield return new WaitForSeconds(2f);
+
+        if (deathPanel != null) deathPanel.SetActive(false);
+
         foreach (BackgroundParallax bp in movingBackgrounds)
         {
             if (bp != null) bp.ResetPosition();
         }
 
-        // Kalau player mati, sekalian reset monsternya biar seger lagi dari awal
         OnMapLoopTriggered();
+    }
+
+    public void LoadBossScene()
+    {
+        if (SaveManager.Instance != null) SaveManager.Instance.SaveGame();
+        SceneManager.LoadScene(bossSceneName);
     }
 
     private void SetMapMovement(bool status)
     {
         IsMapMoving = status;
-        // Mengontrol semua background secara serempak lewat loop
         foreach (BackgroundParallax bp in movingBackgrounds)
         {
             if (bp != null) bp.SetMovement(status);

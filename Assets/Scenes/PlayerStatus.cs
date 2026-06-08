@@ -16,7 +16,13 @@ public class PlayerStatus : MonoBehaviour
 
     [Header("--- Currency System (Sistem Baru) ---")]
     public int currentCoin = 0;
-    public int currentDiamond = 0; // SAKTI: Variabel Diamond ditambahkan
+    public int currentDiamond = 0;
+
+    // ========================================================
+    // SAKTI: SISTEM KONTAMINASI & DEBUFF
+    // ========================================================
+    [Header("--- Contamination System ---")]
+    [Range(0f, 100f)] public float currentContamination = 0f; // Nilai 0% sampai 100%
 
     [Header("--- Allocated Points Tracker (Display Kanan) ---")]
     public int allocatedHpPoints = 0;
@@ -55,15 +61,43 @@ public class PlayerStatus : MonoBehaviour
     [Header("--- Skill Slots ---")]
     public SkillType[] equippedSkills = new SkillType[4];
 
-    [Header("--- UI References (Sistem Baru) ---")]
+    [Header("--- UI References ---")]
     [Tooltip("Tarik objek Slider HP Player ke sini")]
     [SerializeField] private UIProgressBar playerHpBar;
 
     public float currentHp { get; private set; }
 
+    // SAKTI: Timer internal untuk menghitung jeda 1 detik HP Recovery
+    private float hpRecoveryTimer = 0f;
+
     void Awake()
     {
         ResetHpToMax();
+    }
+
+    // ========================================================
+    // SAKTI: UPDATE UNTUK MENJALANKAN RECOVERY SETIAP DETIK
+    // ========================================================
+    void Update()
+    {
+        // HP Recovery hanya berjalan jika player masih hidup dan darahnya belum penuh
+        if (currentHp > 0 && currentHp < FinalMaxHp)
+        {
+            hpRecoveryTimer += Time.deltaTime;
+
+            // Begitu waktu mencapai atau melewati 1 detik
+            if (hpRecoveryTimer >= 1f)
+            {
+                // Tambahkan HP sesuai status final HP Recovery lu
+                currentHp = Mathf.Min(FinalMaxHp, currentHp + FinalHpRecovery);
+
+                // Update visual ke bar UI darah
+                if (playerHpBar != null) playerHpBar.UpdateValue(currentHp, FinalMaxHp);
+
+                // Reset timer kembali ke nol untuk hitungan detik berikutnya
+                hpRecoveryTimer = 0f;
+            }
+        }
     }
 
     public void GainXp(int amount)
@@ -81,22 +115,17 @@ public class PlayerStatus : MonoBehaviour
         currentLevel++;
         availableStatPoints += 3;
         maxXp = maxXp + maxXp;
-        Debug.Log($"LEVEL UP! Sekarang Level {currentLevel}. Poin Tersedia: {availableStatPoints}. Target XP Berikutnya: {maxXp}");
+        Debug.Log($"LEVEL UP! Sekarang Level {currentLevel}. Poin Tersedia: {availableStatPoints}");
     }
 
     public void AddCoin(int amount)
     {
         currentCoin += amount;
-        Debug.Log($"[PLAYER STATUS] Koin bertambah +{amount}! Total Koin Sekarang: {currentCoin}");
     }
 
-    // ========================================================
-    // SAKTI: FUNGSI MANAJEMEN DIAMOND
-    // ========================================================
     public void AddDiamond(int amount)
     {
         currentDiamond += amount;
-        Debug.Log($"[CURRENCY] Diamond bertambah +{amount}! Total: {currentDiamond}");
     }
 
     public bool SpendDiamond(int amount)
@@ -104,27 +133,44 @@ public class PlayerStatus : MonoBehaviour
         if (currentDiamond >= amount)
         {
             currentDiamond -= amount;
-            Debug.Log($"[CURRENCY] Diamond terpakai {amount}. Sisa: {currentDiamond}");
             return true;
         }
-        Debug.LogWarning("[CURRENCY] Diamond gak cukup cok!");
         return false;
     }
 
-    // ========================================================
-    // SAKTI: FUNGSI KUTUKAN PERMANEN MIMIC GACHA SHOP
-    // ========================================================
     public void ApplyMimicWeaponCurse()
     {
-        baseAttack = Mathf.Max(1f, baseAttack - 1f); // Ditahan di angka 1 biar gak 0/minus
-        Debug.LogWarning($"[MIMIC CURSE] Apes! Attack dasar turun permanen menjadi: {baseAttack}");
+        baseAttack = Mathf.Max(1f, baseAttack - 1f);
     }
 
     public void ApplyMimicAccessoryCurse()
     {
-        baseHp = Mathf.Max(1f, baseHp - 1f); // Ditahan di angka 1 biar gak 0/minus
+        baseHp = Mathf.Max(1f, baseHp - 1f);
         ResetHpToMax();
-        Debug.LogWarning($"[MIMIC CURSE] Apes! HP dasar turun permanen menjadi: {baseHp}");
+    }
+
+    // ========================================================
+    // SAKTI: LOGIKA HITUNG DEBUFF KONTAMINASI & CLEANING
+    // ========================================================
+    public float GetContaminationDebuff()
+    {
+        if (currentContamination >= 90f) return 0.3f; // 90-100% -> 30% debuff
+        if (currentContamination >= 80f) return 0.2f; // 80-89% -> 20% debuff
+        if (currentContamination >= 70f) return 0.1f; // 70-79% -> 10% debuff
+        return 0f; // Dibawah 70% aman
+    }
+
+    public bool CleanContamination()
+    {
+        if (currentContamination >= 50f && currentCoin >= 1000)
+        {
+            currentCoin -= 1000; // SAKTI: Gua benerin bug lu di sini, masa bayar 1000 tapi ngurangnya cuma 10 koin wkwk
+            currentContamination = 0f; // Reset ke 0%
+            Debug.Log("[CLEANING] Sukses! Kontaminasi bersih 0%. Koin -1000.");
+            return true;
+        }
+        Debug.LogWarning("[CLEANING] Gagal! Koin lu kurang atau belum 50% cok!");
+        return false;
     }
 
     #region STAT POINT ALLOCATION
@@ -135,7 +181,7 @@ public class PlayerStatus : MonoBehaviour
     public void AllocatePointToHpRecovery() { if (availableStatPoints <= 0) return; allocatedHpRecoveryPoints++; baseHpRecovery += 10f; availableStatPoints--; }
     public void AllocatePointToEvasion() { if (availableStatPoints <= 0) return; allocatedEvasionPoints++; baseEvasion += 100f; availableStatPoints--; }
     public void AllocatePointToCritDamage() { if (availableStatPoints <= 0) return; allocatedCritDamagePoints++; baseCritDamage += 5f; availableStatPoints--; }
-    public void AllocatePointToCritRate() { if (availableStatPoints <= 0) return; if (baseCritRate >= 100f) { Debug.LogWarning("Crit Rate Maksimal!"); return; } allocatedCritRatePoints++; baseCritRate += 0.5f; if (baseCritRate > 100f) baseCritRate = 100f; availableStatPoints--; }
+    public void AllocatePointToCritRate() { if (availableStatPoints <= 0) return; if (baseCritRate >= 100f) return; allocatedCritRatePoints++; baseCritRate += 0.5f; if (baseCritRate > 100f) baseCritRate = 100f; availableStatPoints--; }
     #endregion
 
     public bool HasSkill(SkillType skillToCheck)
@@ -147,17 +193,21 @@ public class PlayerStatus : MonoBehaviour
         return false;
     }
 
-    #region GETTERS FOR FINAL STATS
+    #region GETTERS FOR FINAL STATS (SISTEM DEBUFF EQUIPMENT SAKTI)
     public float FinalAttack
     {
         get
         {
-            int multiplier = 1;
-            if (activeWeaponTier == EquipmentTier.Rare) multiplier = 2;
-            else if (activeWeaponTier == EquipmentTier.Epic) multiplier = 3;
-            else if (activeWeaponTier == EquipmentTier.Mythic) multiplier = 4;
+            float multiplier = 1f;
+            if (activeWeaponTier == EquipmentTier.Rare) multiplier = 2f;
+            else if (activeWeaponTier == EquipmentTier.Epic) multiplier = 3f;
+            else if (activeWeaponTier == EquipmentTier.Mythic) multiplier = 4f;
 
-            float stat = baseAttack * multiplier;
+            // Memotong kekuatan multiplier equipment berdasarkan debuff kontaminasi
+            float debuff = GetContaminationDebuff();
+            float effectiveMultiplier = 1f + ((multiplier - 1f) * (1f - debuff));
+
+            float stat = baseAttack * effectiveMultiplier;
             if (HasSkill(SkillType.IronWill)) stat *= 1.1f;
             return stat;
         }
@@ -167,11 +217,15 @@ public class PlayerStatus : MonoBehaviour
     {
         get
         {
-            int multiplier = 1;
-            if (activeAccessoryTier == EquipmentTier.Rare) multiplier = 2;
-            else if (activeAccessoryTier == EquipmentTier.Epic) multiplier = 3;
-            else if (activeAccessoryTier == EquipmentTier.Mythic) multiplier = 4;
-            return baseHp * multiplier;
+            float multiplier = 1f;
+            if (activeAccessoryTier == EquipmentTier.Rare) multiplier = 2f;
+            else if (activeAccessoryTier == EquipmentTier.Epic) multiplier = 3f;
+            else if (activeAccessoryTier == EquipmentTier.Mythic) multiplier = 4f;
+
+            float debuff = GetContaminationDebuff();
+            float effectiveMultiplier = 1f + ((multiplier - 1f) * (1f - debuff));
+
+            return baseHp * effectiveMultiplier;
         }
     }
 
@@ -179,12 +233,15 @@ public class PlayerStatus : MonoBehaviour
     {
         get
         {
-            int multiplier = 1;
-            if (activeAccessoryTier == EquipmentTier.Rare) multiplier = 2;
-            else if (activeAccessoryTier == EquipmentTier.Epic) multiplier = 3;
-            else if (activeAccessoryTier == EquipmentTier.Mythic) multiplier = 4;
+            float multiplier = 1f;
+            if (activeAccessoryTier == EquipmentTier.Rare) multiplier = 2f;
+            else if (activeAccessoryTier == EquipmentTier.Epic) multiplier = 3f;
+            else if (activeAccessoryTier == EquipmentTier.Mythic) multiplier = 4f;
 
-            float stat = baseDefense * multiplier;
+            float debuff = GetContaminationDebuff();
+            float effectiveMultiplier = 1f + ((multiplier - 1f) * (1f - debuff));
+
+            float stat = baseDefense * effectiveMultiplier;
             if (HasSkill(SkillType.IronBody)) stat *= 1.1f;
             return stat;
         }
@@ -194,11 +251,15 @@ public class PlayerStatus : MonoBehaviour
     {
         get
         {
-            int multiplier = 1;
-            if (activeAccessoryTier == EquipmentTier.Rare) multiplier = 2;
-            else if (activeAccessoryTier == EquipmentTier.Epic) multiplier = 3;
-            else if (activeAccessoryTier == EquipmentTier.Mythic) multiplier = 4;
-            return baseHpRecovery * multiplier;
+            float multiplier = 1f;
+            if (activeAccessoryTier == EquipmentTier.Rare) multiplier = 2f;
+            else if (activeAccessoryTier == EquipmentTier.Epic) multiplier = 3f;
+            else if (activeAccessoryTier == EquipmentTier.Mythic) multiplier = 4f;
+
+            float debuff = GetContaminationDebuff();
+            float effectiveMultiplier = 1f + ((multiplier - 1f) * (1f - debuff));
+
+            return baseHpRecovery * effectiveMultiplier;
         }
     }
 
@@ -210,30 +271,16 @@ public class PlayerStatus : MonoBehaviour
             if (activeWeaponTier == EquipmentTier.Rare) multiplier = 2f;
             else if (activeWeaponTier == EquipmentTier.Epic) multiplier = 2f;
             else if (activeWeaponTier == EquipmentTier.Mythic) multiplier = 4f;
-            return baseAttackSpeed * multiplier;
+
+            float debuff = GetContaminationDebuff();
+            float effectiveMultiplier = 1f + ((multiplier - 1f) * (1f - debuff));
+
+            return baseAttackSpeed * effectiveMultiplier;
         }
     }
 
-    public float FinalEvasion
-    {
-        get
-        {
-            float stat = baseEvasion;
-            if (HasSkill(SkillType.DancingWaves)) stat *= 1.1f;
-            return stat;
-        }
-    }
-
-    public float FinalAccuracy
-    {
-        get
-        {
-            float stat = baseAccuracy;
-            if (HasSkill(SkillType.IronEye)) stat *= 1.1f;
-            return stat;
-        }
-    }
-
+    public float FinalEvasion { get { float stat = baseEvasion; if (HasSkill(SkillType.DancingWaves)) stat *= 1.1f; return stat; } }
+    public float FinalAccuracy { get { float stat = baseAccuracy; if (HasSkill(SkillType.IronEye)) stat *= 1.1f; return stat; } }
     public float FinalCritDamage => baseCritDamage;
     public float FinalCritRate => baseCritRate;
     #endregion
@@ -247,15 +294,68 @@ public class PlayerStatus : MonoBehaviour
     public void TakeDamage(float damageAmount)
     {
         currentHp -= damageAmount;
-        Debug.Log($"[PLAYER] HP Berkurang! Sisa HP Player: {currentHp}/{FinalMaxHp}");
-
         if (playerHpBar != null) playerHpBar.UpdateValue(currentHp, FinalMaxHp);
 
         if (currentHp <= 0)
         {
             currentHp = 0;
-            ResetHpToMax();
-            GameplayManager.Instance.OnPlayerDeath();
+            ResetHpToMax(); // Darah di-reset buat persiapan scene selanjutnya
+
+            // SAKTI: Cek lu lagi ada di scene mana!
+            if (GameplayManager.Instance != null)
+            {
+                // Kalau ada GameplayManager biasa, berarti lu di Floor Normal
+                GameplayManager.Instance.OnPlayerDeath();
+            }
+            else if (BossGameplayManager.Instance != null)
+            {
+                // Kalau ada BossGameplayManager, berarti lu di Stage Boss
+                BossGameplayManager.Instance.OnPlayerDeath();
+            }
         }
+    }
+
+    // ========================================================
+    // SAKTI: FUNGSI BANTUAN UNTUK SAVE MANAGER BACA & TULIS DATA
+    // ========================================================
+    public float GetBaseStat(string statType)
+    {
+        switch (statType)
+        {
+            case "hp": return baseHp;
+            case "attack": return baseAttack;
+            case "defense": return baseDefense;
+            case "accuracy": return baseAccuracy;
+            case "hpRecovery": return baseHpRecovery;
+            case "evasion": return baseEvasion;
+            case "critDamage": return baseCritDamage;
+            case "critRate": return baseCritRate;
+            default: return 0f;
+        }
+    }
+
+    public void SetBaseStats(float hp, float atk, float def, float acc, float hpRec, float eva, float critD, float critR)
+    {
+        baseHp = hp;
+        baseAttack = atk;
+        baseDefense = def;
+        baseAccuracy = acc;
+        baseHpRecovery = hpRec;
+        baseEvasion = eva;
+        baseCritDamage = critD;
+        baseCritRate = critR;
+    }
+
+    // ========================================================
+    // SAKTI: FUNGSI BANTUAN BUAT NGE-LOAD SISA HP TERAKHIR
+    // ========================================================
+    public void LoadCurrentHp(float savedHp)
+    {
+        currentHp = savedHp;
+        // Pastikan darah ga nembus batas atas atau bawah pas diload
+        if (currentHp > FinalMaxHp) currentHp = FinalMaxHp;
+        if (currentHp <= 0) currentHp = FinalMaxHp;
+
+        if (playerHpBar != null) playerHpBar.UpdateValue(currentHp, FinalMaxHp);
     }
 }

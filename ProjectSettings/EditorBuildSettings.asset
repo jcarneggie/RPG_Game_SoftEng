@@ -14,6 +14,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Floor1 Normal.unity
     guid: 8665ff59fb28f4c49b945ec5f81474f6
+  - enabled: 1
+    path: Assets/Scenes/Bossstage.unity
+    guid: 6a31126290f2b29429643f6cfd7cc264
+  - enabled: 1
+    path: Assets/Scenes/Floor2 Normal.unity
+    guid: ef2021bb458170d478ce9793c6b4e05e
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 3590b91b4603b465dbb4216d601bff33, type: 3}
   m_UseUCBPForAssetBundles: 0
