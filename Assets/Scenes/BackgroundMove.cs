@@ -20,10 +20,10 @@ public class BackgroundMove : MonoBehaviour
 
     void Update()
     {
-        // Mathf.Sin akan menghasilkan nilai naik turun antara -1 dan 1 secara terus menerus
+
         float movement = Mathf.Sin(Time.time * speed) * moveRange;
 
-        // Terapkan nilai gerakan hanya pada sumbu X (kiri-kanan)
+
         transform.position = new Vector3(startPosition.x + movement, startPosition.y, startPosition.z);
     }
 }

@@ -16,10 +16,9 @@ public class UIEquipmentManager : MonoBehaviour
     [SerializeField] private Image epicAccessoryImage;
     [SerializeField] private Image mythicAccessoryImage;
 
-    // TIGA KONDISI WARNA SESUAI REQUEST LU
-    private Color lockedColor = new Color(0.2f, 0.2f, 0.2f, 1f);     // 1. Gak punya = Abu-abu gelap banget
-    private Color unlockedColor = Color.white;                        // 2. Punya tapi nganggur = Berwarna murni terang
-    private Color equippedColor = new Color(0.5f, 0.5f, 0.5f, 1f);    // 3. Lagi di-Equip = Diitemin/diredupin dikit
+    private Color lockedColor = new Color(0.2f, 0.2f, 0.2f, 1f);     
+    private Color unlockedColor = Color.white;                        
+    private Color equippedColor = new Color(0.5f, 0.5f, 0.5f, 1f);    
 
     void Start()
     {
@@ -34,10 +33,8 @@ public class UIEquipmentManager : MonoBehaviour
     {
         if (playerStatus == null) return;
 
-        // 1. UPDATE KONDISI VISUAL WEAPON
+       
         UpdateWeaponVisuals();
-
-        // 2. UPDATE KONDISI VISUAL ACCESSORY
         UpdateAccessoryVisuals();
     }
 
@@ -65,30 +62,26 @@ public class UIEquipmentManager : MonoBehaviour
         SetItemColor(mythicAccessoryImage, playerStatus.ownsMythicAccessory, playerStatus.activeAccessoryTier == PlayerStatus.EquipmentTier.Mythic);
     }
 
-    /// <summary>
-    /// Logika sakti penentu warna berdasarkan status kepemilikan dan status pemakaian
-    /// </summary>
+
     private void SetItemColor(Image itemImage, bool isOwned, bool isEquipped)
     {
         if (itemImage == null) return;
 
         if (!isOwned)
         {
-            itemImage.color = lockedColor; // Belum dapet gacha
+            itemImage.color = lockedColor; 
         }
         else if (isEquipped)
         {
-            itemImage.color = equippedColor; // SAKTI: Lagi dipakai, otomatis diredupin/diitemin dikit!
+            itemImage.color = equippedColor; 
         }
         else
         {
-            itemImage.color = unlockedColor; // Punya dan siap pakai
+            itemImage.color = unlockedColor; 
         }
     }
 
-    // =======================================================
-    // TOMBOL EQUIP WEAPON
-    // =======================================================
+
     public void EquipRareWeapon()
     {
         if (playerStatus != null && playerStatus.ownsRareWeapon)
@@ -116,9 +109,7 @@ public class UIEquipmentManager : MonoBehaviour
         }
     }
 
-    // =======================================================
-    // TOMBOL EQUIP ACCESSORY
-    // =======================================================
+
     public void EquipRareAccessory()
     {
         if (playerStatus != null && playerStatus.ownsRareAccessory)
@@ -126,6 +117,7 @@ public class UIEquipmentManager : MonoBehaviour
             playerStatus.activeAccessoryTier = PlayerStatus.EquipmentTier.Rare;
             playerStatus.ResetHpToMax();
             Debug.Log($"[EQUIP] Pakai RARE Accessory. HP Real-time: {playerStatus.FinalMaxHp}");
+            NotificationLogManager.Instance.AddLog("Rare Weapon Equipped!", Color.magenta);
         }
     }
 
@@ -136,6 +128,7 @@ public class UIEquipmentManager : MonoBehaviour
             playerStatus.activeAccessoryTier = PlayerStatus.EquipmentTier.Epic;
             playerStatus.ResetHpToMax();
             Debug.Log($"[EQUIP] Pakai EPIC Accessory. HP Real-time: {playerStatus.FinalMaxHp}");
+            NotificationLogManager.Instance.AddLog("Epic Weapon Equipped!", Color.magenta);
         }
     }
 
@@ -146,6 +139,7 @@ public class UIEquipmentManager : MonoBehaviour
             playerStatus.activeAccessoryTier = PlayerStatus.EquipmentTier.Mythic;
             playerStatus.ResetHpToMax();
             Debug.Log($"[EQUIP] Pakai MYTHIC Accessory. HP Real-time: {playerStatus.FinalMaxHp}");
+            NotificationLogManager.Instance.AddLog("Mythic Weapon Equipped!", Color.magenta);
         }
     }
 }

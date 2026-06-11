@@ -22,7 +22,7 @@ public class UIContaminationManager : MonoBehaviour
             if (playerObj != null) playerStatus = playerObj.GetComponent<PlayerStatus>();
         }
 
-        // Pasang perintah klik otomatis ke tombol
+
         if (cleanButton != null)
         {
             cleanButton.onClick.AddListener(OnClickClean);
@@ -33,13 +33,13 @@ public class UIContaminationManager : MonoBehaviour
     {
         if (playerStatus == null) return;
 
-        // 1. Tampilkan angka dengan 1 desimal (contoh: "Contamination: 75.2%")
+
         if (contaminationText != null)
         {
-            contaminationText.text = "Contaminated: " + playerStatus.currentContamination.ToString("F1") + "%";
+            contaminationText.text = "Contaminated:" + playerStatus.currentContamination.ToString("F1") + "%";
         }
 
-        // 2. Munculkan tombol Clean HANYA kalau kontaminasi >= 50%
+ 
         if (cleanButton != null)
         {
             cleanButton.gameObject.SetActive(playerStatus.currentContamination >= 50f);

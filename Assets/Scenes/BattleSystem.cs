@@ -60,7 +60,7 @@ public class BattleSystem : MonoBehaviour
     {
         if (activeMonster == null) return;
 
-        // Cek Hit / Miss berdasarkan rasio industri agar monster ber-evasion tinggi tidak kebal permanen
+
         float hitChance = (activePlayer.FinalAccuracy / (activePlayer.FinalAccuracy + activeMonster.evasion)) * 100f;
         if (Random.Range(0f, 100f) > hitChance)
         {
@@ -68,13 +68,13 @@ public class BattleSystem : MonoBehaviour
             return;
         }
 
-        // Hitung Damage Murni Player ke Monster (Min Damage = 1)
+
         float baseDmg = Mathf.Max(1f, activePlayer.FinalAttack - activeMonster.defense);
 
-        // Hitung Critical Hit Sistem Umum
+
         if (Random.Range(0f, 100f) <= activePlayer.FinalCritRate)
         {
-            // Jika Critical, damage ditambah bonus persen Crit Damage (contoh default + 100% bawaan game / x2)
+
             float critMultiplier = 2f + (activePlayer.FinalCritDamage / 100f);
             baseDmg *= critMultiplier;
             Debug.Log("[BATTLE] CRITICAL HIT!");
@@ -87,7 +87,7 @@ public class BattleSystem : MonoBehaviour
     {
         if (activeMonster == null || activePlayer == null) return;
 
-        // Cek Hit / Miss Monster ke Player
+
         float hitChance = (activeMonster.accuracy / (activeMonster.accuracy + activePlayer.FinalEvasion)) * 100f;
         if (Random.Range(0f, 100f) > hitChance)
         {
@@ -95,7 +95,7 @@ public class BattleSystem : MonoBehaviour
             return;
         }
 
-        // Hitung Damage Monster ke Player (Min Damage = 1)
+
         float damageToPlayer = Mathf.Max(1f, activeMonster.attack - activePlayer.FinalDefense);
         activePlayer.TakeDamage(damageToPlayer);
     }

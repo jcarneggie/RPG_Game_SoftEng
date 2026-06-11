@@ -33,20 +33,20 @@ public class SaveManager : MonoBehaviour
 
     private void Awake()
     {
-        // Kalau sudah ada Instance, jangan bikin duplikat
+  
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject); // SAKTI: Objek ini gak bakal mati pas pindah scene!
+            DontDestroyOnLoad(gameObject); 
         }
         else
         {
-            Destroy(gameObject); // Hapus duplikat kalau ada
+            Destroy(gameObject);
         }
 
         saveFilePath = Application.persistentDataPath + "/rpg_savefile.json";
 
-        // Cari player kalau belum ada
+
         if (playerStatus == null) playerStatus = FindObjectOfType<PlayerStatus>();
 
         LoadGame();
@@ -54,7 +54,7 @@ public class SaveManager : MonoBehaviour
 
     public void SaveGame()
     {
-        // Cek darurat barangkali objek player tiba-tiba ilang
+
         if (playerStatus == null) playerStatus = FindObjectOfType<PlayerStatus>();
         if (playerStatus == null)
         {
@@ -171,7 +171,7 @@ public class SaveManager : MonoBehaviour
     {
         if (pauseStatus) SaveGame();
     }
-    // Tambahkan fungsi ini buat nangkep player tiap kali scene ganti
+
     void OnEnable()
     {
         SceneManager.sceneLoaded += OnSceneLoaded;
@@ -184,11 +184,11 @@ public class SaveManager : MonoBehaviour
 
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        // Setiap scene baru kebuka, cari player-nya lagi
+
         playerStatus = FindObjectOfType<PlayerStatus>();
         if (playerStatus != null)
         {
-            LoadGame(); // Langsung load data ke player baru
+            LoadGame();
         }
     }
 }

@@ -13,6 +13,10 @@ public class GameplayManager : MonoBehaviour
     [Tooltip("Tarik objek Player lu yang punya komponen Animator ke sini")]
     [SerializeField] private Animator playerAnimator;
 
+    [Header("--- Audio Setup ---")]
+    [Tooltip("Tarik GameplayManager lu sendiri ke sini buat audionya")]
+    [SerializeField] private AudioSource attackAudioSource;
+
     [Header("--- Backgrounds to Stop (Bisa Banyak Objek) ---")]
     [Tooltip("Tarik SEMUA objek background/floor yang bergerak ke sini (Size: 2)")]
     [SerializeField] private BackgroundParallax[] movingBackgrounds;
@@ -77,8 +81,11 @@ public class GameplayManager : MonoBehaviour
     private void TriggerBattleState()
     {
         SetMapMovement(false); 
-        if (playerAnimator != null) playerAnimator.SetBool("isAttacking", true); 
-
+        if (playerAnimator != null) playerAnimator.SetBool("isAttacking", true);
+        if (attackAudioSource != null && !attackAudioSource.isPlaying)
+        {
+            attackAudioSource.Play();
+        }
         if (monsterQueue.Count > 0 && monsterQueue[0] != null)
         {
             monsterQueue[0].StartFighting();
@@ -90,12 +97,13 @@ public class GameplayManager : MonoBehaviour
                 BattleSystem.Instance.StartBattle(playerStatus, monsterQueue[0]);
             }
         }
+
     }
 
     public void OnMonsterDefeated()
     {
         if (BattleSystem.Instance != null) BattleSystem.Instance.EndBattle();
-
+        if (attackAudioSource != null) attackAudioSource.Stop();
         PlayerStatus playerStatus = playerTransform.GetComponent<PlayerStatus>();
         if (playerStatus != null)
         {
@@ -155,7 +163,7 @@ public class GameplayManager : MonoBehaviour
         SetMapMovement(false);
         if (playerAnimator != null) playerAnimator.SetBool("isAttacking", false);
 
-        // SAKTI: Auto save sebagai checkpoint pas lu mati di lantai normal
+
         if (SaveManager.Instance != null) SaveManager.Instance.SaveGame();
 
         if (deathPanel != null) deathPanel.SetActive(true);

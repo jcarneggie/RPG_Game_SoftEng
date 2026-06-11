@@ -18,11 +18,9 @@ public class PlayerStatus : MonoBehaviour
     public int currentCoin = 0;
     public int currentDiamond = 0;
 
-    // ========================================================
-    // SAKTI: SISTEM KONTAMINASI & DEBUFF
-    // ========================================================
+
     [Header("--- Contamination System ---")]
-    [Range(0f, 100f)] public float currentContamination = 0f; // Nilai 0% sampai 100%
+    [Range(0f, 100f)] public float currentContamination = 0f; 
 
     [Header("--- Allocated Points Tracker (Display Kanan) ---")]
     public int allocatedHpPoints = 0;
@@ -67,7 +65,7 @@ public class PlayerStatus : MonoBehaviour
 
     public float currentHp { get; private set; }
 
-    // SAKTI: Timer internal untuk menghitung jeda 1 detik HP Recovery
+
     private float hpRecoveryTimer = 0f;
 
     void Awake()
@@ -75,26 +73,23 @@ public class PlayerStatus : MonoBehaviour
         ResetHpToMax();
     }
 
-    // ========================================================
-    // SAKTI: UPDATE UNTUK MENJALANKAN RECOVERY SETIAP DETIK
-    // ========================================================
     void Update()
     {
-        // HP Recovery hanya berjalan jika player masih hidup dan darahnya belum penuh
+
         if (currentHp > 0 && currentHp < FinalMaxHp)
         {
             hpRecoveryTimer += Time.deltaTime;
 
-            // Begitu waktu mencapai atau melewati 1 detik
+
             if (hpRecoveryTimer >= 1f)
             {
-                // Tambahkan HP sesuai status final HP Recovery lu
+              
                 currentHp = Mathf.Min(FinalMaxHp, currentHp + FinalHpRecovery);
 
-                // Update visual ke bar UI darah
+                
                 if (playerHpBar != null) playerHpBar.UpdateValue(currentHp, FinalMaxHp);
 
-                // Reset timer kembali ke nol untuk hitungan detik berikutnya
+                
                 hpRecoveryTimer = 0f;
             }
         }
@@ -149,23 +144,21 @@ public class PlayerStatus : MonoBehaviour
         ResetHpToMax();
     }
 
-    // ========================================================
-    // SAKTI: LOGIKA HITUNG DEBUFF KONTAMINASI & CLEANING
-    // ========================================================
+
     public float GetContaminationDebuff()
     {
-        if (currentContamination >= 90f) return 0.3f; // 90-100% -> 30% debuff
-        if (currentContamination >= 80f) return 0.2f; // 80-89% -> 20% debuff
-        if (currentContamination >= 70f) return 0.1f; // 70-79% -> 10% debuff
-        return 0f; // Dibawah 70% aman
+        if (currentContamination >= 90f) return 0.3f; 
+        if (currentContamination >= 80f) return 0.2f; 
+        if (currentContamination >= 70f) return 0.1f; 
+        return 0f; 
     }
 
     public bool CleanContamination()
     {
         if (currentContamination >= 50f && currentCoin >= 1000)
         {
-            currentCoin -= 1000; // SAKTI: Gua benerin bug lu di sini, masa bayar 1000 tapi ngurangnya cuma 10 koin wkwk
-            currentContamination = 0f; // Reset ke 0%
+            currentCoin -= 1000; 
+            currentContamination = 0f; 
             Debug.Log("[CLEANING] Sukses! Kontaminasi bersih 0%. Koin -1000.");
             return true;
         }
@@ -203,7 +196,7 @@ public class PlayerStatus : MonoBehaviour
             else if (activeWeaponTier == EquipmentTier.Epic) multiplier = 3f;
             else if (activeWeaponTier == EquipmentTier.Mythic) multiplier = 4f;
 
-            // Memotong kekuatan multiplier equipment berdasarkan debuff kontaminasi
+           
             float debuff = GetContaminationDebuff();
             float effectiveMultiplier = 1f + ((multiplier - 1f) * (1f - debuff));
 
@@ -299,25 +292,22 @@ public class PlayerStatus : MonoBehaviour
         if (currentHp <= 0)
         {
             currentHp = 0;
-            ResetHpToMax(); // Darah di-reset buat persiapan scene selanjutnya
+            ResetHpToMax(); 
 
-            // SAKTI: Cek lu lagi ada di scene mana!
+            
             if (GameplayManager.Instance != null)
             {
-                // Kalau ada GameplayManager biasa, berarti lu di Floor Normal
+                
                 GameplayManager.Instance.OnPlayerDeath();
             }
             else if (BossGameplayManager.Instance != null)
             {
-                // Kalau ada BossGameplayManager, berarti lu di Stage Boss
+                
                 BossGameplayManager.Instance.OnPlayerDeath();
             }
         }
     }
 
-    // ========================================================
-    // SAKTI: FUNGSI BANTUAN UNTUK SAVE MANAGER BACA & TULIS DATA
-    // ========================================================
     public float GetBaseStat(string statType)
     {
         switch (statType)
@@ -346,13 +336,11 @@ public class PlayerStatus : MonoBehaviour
         baseCritRate = critR;
     }
 
-    // ========================================================
-    // SAKTI: FUNGSI BANTUAN BUAT NGE-LOAD SISA HP TERAKHIR
-    // ========================================================
+
     public void LoadCurrentHp(float savedHp)
     {
         currentHp = savedHp;
-        // Pastikan darah ga nembus batas atas atau bawah pas diload
+
         if (currentHp > FinalMaxHp) currentHp = FinalMaxHp;
         if (currentHp <= 0) currentHp = FinalMaxHp;
 

@@ -18,11 +18,11 @@ public class InGameMenuController : MonoBehaviour
 
     void Start()
     {
-        // Awal game, sembunyikan semua sub-menu kanan biar bersih
+
         CloseAllSubMenus();
     }
 
-    // --- FUNGSI UNTUK BUTTON ---
+
     public void OnStatButtonClicked() { ToggleSubMenu(panelStatManage); }
     public void OnInventoryButtonClicked() { ToggleSubMenu(panelInventory); }
     public void OnSkillButtonClicked() { ToggleSubMenu(panelSkill); }

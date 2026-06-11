@@ -3,7 +3,7 @@ using UnityEngine;
 public class Monster : MonoBehaviour
 {
     [Header("--- Monster Stats ---")]
-    public string monsterName = "Virus Kroco";
+    public string monsterName = "Delta Virus";
     public float maxHp = 50f;
     public float currentHp;
     public float attack = 50f;
@@ -25,16 +25,16 @@ public class Monster : MonoBehaviour
     [SerializeField] private float floatHeight = 0.2f;
 
     private Vector3 startPos;
-    private Vector3 initialHierarchyPos; // SAKTI: Untuk mencatat koordinat mutlak pas ditaro di Hierarchy awal game
+    private Vector3 initialHierarchyPos;
     private bool isMyTurnToFight = false;
 
     void Start()
     {
         currentHp = maxHp;
         startPos = transform.position;
-        initialHierarchyPos = transform.position; // Kunci posisi murni saat fajar pertama game dimulai
+        initialHierarchyPos = transform.position; 
 
-        // Set nilai awal bar darah saat monster muncul di layar
+        
         if (monsterHpBar != null) monsterHpBar.UpdateValue(currentHp, maxHp);
     }
 
@@ -59,7 +59,7 @@ public class Monster : MonoBehaviour
     {
         currentHp -= damage;
 
-        // UPDATE VISUAL BAR DARAH MONSTER TIAP DIKETOK PLAYER
+        
         if (monsterHpBar != null) monsterHpBar.UpdateValue(currentHp, maxHp);
 
         if (currentHp <= 0) Die();
@@ -69,22 +69,27 @@ public class Monster : MonoBehaviour
     {
         if (coinPrefab != null) Instantiate(coinPrefab, transform.position + Vector3.up, Quaternion.identity);
         if (xpPrefab != null) Instantiate(xpPrefab, transform.position + Vector3.down, Quaternion.identity);
-
+        if (NotificationLogManager.Instance != null)
+        {
+            
+            NotificationLogManager.Instance.AddLog($"Killed {monsterName}", Color.white);
+            NotificationLogManager.Instance.AddLog("Virus Contamination Added + 0.1%", Color.white);
+        }
         GameplayManager.Instance.OnMonsterDefeated();
 
-        // SAKTI: JANGAN DI-DESTROY, COK! Cukup matikan biar data drop dan settingan lu selamat
+        
         gameObject.SetActive(false);
     }
 
-    // SAKTI: Fungsi baru untuk membangkitkan monster kembali suci seperti awal game pas map looping
+    
     public void ResetMonster()
     {
-        transform.position = initialHierarchyPos; // Teleport balik ke koordinat tanah aslinya di Hierarchy
-        startPos = initialHierarchyPos;           // Reset acuan kalkulasi translate jalan kirinya
-        currentHp = maxHp;                        // Darah penuh lagi
+        transform.position = initialHierarchyPos; 
+        startPos = initialHierarchyPos;           
+        currentHp = maxHp;                        
         isMyTurnToFight = false;
 
-        if (monsterHpBar != null) monsterHpBar.UpdateValue(currentHp, maxHp); // Bar darah penuh lagi
-        gameObject.SetActive(true);               // Munculkan kembali fisiknya di layar
+        if (monsterHpBar != null) monsterHpBar.UpdateValue(currentHp, maxHp); 
+        gameObject.SetActive(true);               
     }
 }

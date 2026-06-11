@@ -1,5 +1,5 @@
 using UnityEngine;
-using TMPro; // SAKTI: Wajib ada ini agar kodingan bisa membaca TextMeshPro!
+using TMPro; 
 
 public class UIStatManageDisplay : MonoBehaviour
 {
@@ -34,12 +34,12 @@ public class UIStatManageDisplay : MonoBehaviour
     {
         if (playerStatus == null) return;
 
-        // 1. Ambil data dari PlayerStatus dan kirim ke anak bernama "isi"
+
         UpdateValueText(levelParent, "" + playerStatus.currentLevel);
         UpdateValueText(xpParent, playerStatus.currentXp + " / " + playerStatus.maxXp);
         UpdateValueText(availablePointsParent, playerStatus.availableStatPoints.ToString());
 
-        // 2. Ambil data alokasi stat point
+
         UpdateValueText(hpParent, "" + playerStatus.allocatedHpPoints);
         UpdateValueText(attackParent, "" + playerStatus.allocatedAttackPoints);
         UpdateValueText(defenseParent, "" + playerStatus.allocatedDefensePoints);
@@ -54,11 +54,11 @@ public class UIStatManageDisplay : MonoBehaviour
     {
         if (parentTransform == null) return;
 
-        // Mencari objek anak bernama "isi" di dalam bapaknya
+
         Transform valueChild = parentTransform.Find("isi");
         if (valueChild != null)
         {
-            // SAKTI: Sekarang kita cari komponen TextMeshProUGUI, bukan Text lama!
+
             TextMeshProUGUI tmpComponent = valueChild.GetComponent<TextMeshProUGUI>();
             if (tmpComponent != null)
             {
@@ -67,9 +67,7 @@ public class UIStatManageDisplay : MonoBehaviour
         }
     }
 
-    // ========================================================
-    // FUNGSI UNTUK DIHUBUNGKAN KE ON CLICK TOMBOL ADD (+)
-    // ========================================================
+
     public void ClickAddHp() { if (playerStatus != null) playerStatus.AllocatePointToHp(); }
     public void ClickAddAttack() { if (playerStatus != null) playerStatus.AllocatePointToAttack(); }
     public void ClickAddDefense() { if (playerStatus != null) playerStatus.AllocatePointToDefense(); }

@@ -20,7 +20,7 @@ public class UIShopManager : MonoBehaviour
     [SerializeField] private Sprite defaultMimicSprite;
 
     [Tooltip("Gambar frame mimic pas lagi jilat/melet (Kutukan)")]
-    [SerializeField] private Sprite curseMimicSprite; // SAKTI: Slot baru buat gambar mimic melet
+    [SerializeField] private Sprite curseMimicSprite; 
 
     [Space]
     [SerializeField] private Sprite rareWeaponSprite;
@@ -40,9 +40,6 @@ public class UIShopManager : MonoBehaviour
         }
     }
 
-    // ========================================================
-    // LOGIKA DRAW WEAPON (100 Diamond)
-    // ========================================================
     public void DrawWeapon()
     {
         if (playerStatus == null) return;
@@ -79,9 +76,6 @@ public class UIShopManager : MonoBehaviour
         }
     }
 
-    // ========================================================
-    // LOGIKA DRAW ACCESSORY (100 Diamond)
-    // ========================================================
     public void DrawAccessory()
     {
         if (playerStatus == null) return;
@@ -92,7 +86,7 @@ public class UIShopManager : MonoBehaviour
 
         if (randomRoll <= 20f)
         {
-            // 20%: Kutukan Mimic (Ganti gambar ke mimic melet)
+            // 20%: Mimic Drop Curse
             playerStatus.ApplyMimicAccessoryCurse();
             StartCoroutine(DisplayRewardFeedback(accessoryChestImage, curseMimicSprite));
         }
@@ -115,8 +109,6 @@ public class UIShopManager : MonoBehaviour
             StartCoroutine(DisplayRewardFeedback(accessoryChestImage, mythicAccessorySprite));
         }
     }
-
-    // SAKTI: Coroutine merubah gambar peti jadi item (atau mimic jilat), tahan 3 detik, lalu balik jadi peti lagi
     private IEnumerator DisplayRewardFeedback(Image chestImage, Sprite rewardSprite)
     {
         if (chestImage == null || rewardSprite == null) yield break;
@@ -126,9 +118,6 @@ public class UIShopManager : MonoBehaviour
         chestImage.sprite = defaultMimicSprite;
     }
 
-    // ========================================================
-    // SIMULASI BANNER TOP-UP
-    // ========================================================
     public void BuyPackage1()
     {
         if (playerStatus == null) return;

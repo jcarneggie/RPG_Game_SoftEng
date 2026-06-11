@@ -10,7 +10,7 @@ public class UIStatDisplay : MonoBehaviour
     [Tooltip("Tarik objek 'Border Coin' ke sini")]
     [SerializeField] private Transform borderCoin;
 
-    // SAKTI: Tambahan Slot Diamond
+
     [Tooltip("Tarik objek 'Border Diamond' ke sini")]
     [SerializeField] private Transform borderDiamond;
 
@@ -53,11 +53,11 @@ public class UIStatDisplay : MonoBehaviour
     {
         if (playerStatus == null) return;
 
-        // 1. UPDATE KOTAK KOIN & DIAMOND
+
         if (borderCoin != null) UpdateValueText(borderCoin, playerStatus.currentCoin.ToString());
         if (borderDiamond != null) UpdateValueText(borderDiamond, playerStatus.currentDiamond.ToString());
 
-        // 2. UPDATE ISI ANGKA REAL-TIME DI PANEL BESAR PROFILE
+
         if (panelProfileStats != null && panelProfileStats.gameObject.activeSelf)
         {
             UpdateValueText(finalHpParent, Mathf.RoundToInt(playerStatus.currentHp) + " / " + Mathf.RoundToInt(playerStatus.FinalMaxHp));

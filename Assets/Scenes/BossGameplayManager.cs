@@ -12,6 +12,11 @@ public class BossGameplayManager : MonoBehaviour
     [Tooltip("Tarik objek Player lu yang punya komponen Animator ke sini")]
     [SerializeField] private Animator playerAnimator;
 
+    [Header("--- Audio Setup ---")]
+    [Tooltip("Tarik BossGameplayManager lu sendiri ke sini buat audionya")]
+    [SerializeField] private AudioSource attackAudioSource;
+
+
     [Header("--- Backgrounds to Stop ---")]
     [Tooltip("Tarik SEMUA objek background/floor yang bergerak ke sini")]
     [SerializeField] private BackgroundParallax[] movingBackgrounds;
@@ -69,7 +74,10 @@ public class BossGameplayManager : MonoBehaviour
     {
         SetMapMovement(false);
         if (playerAnimator != null) playerAnimator.SetBool("isAttacking", true);
-
+        if (attackAudioSource != null && !attackAudioSource.isPlaying)
+        {
+            attackAudioSource.Play();
+        }
         if (targetBoss != null)
         {
             targetBoss.StartFighting();
@@ -93,11 +101,11 @@ public class BossGameplayManager : MonoBehaviour
 
         SetMapMovement(false);
         if (playerAnimator != null) playerAnimator.SetBool("isAttacking", false);
-
+        if (attackAudioSource != null) attackAudioSource.Stop();
         if (bossDefeatedPanel != null) bossDefeatedPanel.SetActive(true);
         Debug.Log("[BOSS STAGE] Kemenangan mutlak! Tahan 3 detik nunggu loot kesedot...");
 
-        // SAKTI: Auto save sebelum pindah biar duit gak hilang
+
         if (SaveManager.Instance != null) SaveManager.Instance.SaveGame();
 
         yield return new WaitForSeconds(3f);
@@ -115,8 +123,8 @@ public class BossGameplayManager : MonoBehaviour
 
         SetMapMovement(false);
         if (playerAnimator != null) playerAnimator.SetBool("isAttacking", false);
+        if (attackAudioSource != null) attackAudioSource.Stop();
 
-        // SAKTI: KUNCI DATA TERKINI BIAR TIDAK HILANG / REVERT SAAT PINDAH SCENE!
         if (SaveManager.Instance != null)
         {
             SaveManager.Instance.SaveGame();

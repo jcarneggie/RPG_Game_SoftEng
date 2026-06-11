@@ -21,10 +21,10 @@ public class UISkillManager : MonoBehaviour
     [SerializeField] private Sprite ironBodySprite;
     [SerializeField] private Sprite ironEyeSprite;
 
-    private Color lockedColor = new Color(0.2f, 0.2f, 0.2f, 1f); // Gelap
-    private Color unlockedColor = Color.white; // Terang murni
+    private Color lockedColor = new Color(0.2f, 0.2f, 0.2f, 1f);
+    private Color unlockedColor = Color.white;
 
-    // Level requirement untuk masing-masing slot (1, 5, 10, 15)
+
     private int[] slotUnlockLevels = new int[] { 1, 5, 10, 15 };
 
     void Start()
@@ -42,9 +42,7 @@ public class UISkillManager : MonoBehaviour
         RefreshSlotUI();
     }
 
-    /// <summary>
-    /// Update tampilan 4 slot (terkunci, kosong, atau ada isinya)
-    /// </summary>
+
     private void RefreshSlotUI()
     {
         int pLevel = playerStatus.currentLevel;
@@ -53,28 +51,28 @@ public class UISkillManager : MonoBehaviour
         {
             bool isUnlocked = pLevel >= slotUnlockLevels[i];
 
-            // Atur status bisa diklik (interactable)
+
             slotButtons[i].interactable = isUnlocked;
 
             if (!isUnlocked)
             {
-                // Kalau kekunci: warnanya gelap dan gambarnya dipaksa jadi empty
+
                 slotImages[i].color = lockedColor;
                 slotImages[i].sprite = emptySlotSprite;
             }
             else
             {
-                // Kalau terbuka: warnanya terang, lalu cek isinya
+
                 slotImages[i].color = unlockedColor;
 
                 PlayerStatus.SkillType currentSkill = playerStatus.equippedSkills[i];
                 if (currentSkill == PlayerStatus.SkillType.None)
                 {
-                    slotImages[i].sprite = emptySlotSprite; // Kosong
+                    slotImages[i].sprite = emptySlotSprite; 
                 }
                 else
                 {
-                    slotImages[i].sprite = GetSpriteForSkill(currentSkill); // Ada isinya
+                    slotImages[i].sprite = GetSpriteForSkill(currentSkill);
                 }
             }
         }
@@ -92,43 +90,40 @@ public class UISkillManager : MonoBehaviour
         }
     }
 
-    // ========================================================
-    // FUNGSI UNTUK BUTTON "ADD" DI MASING-MASING PARENT SKILL
-    // ========================================================
+
     public void EquipSkill(int skillTypeIndex)
     {
         PlayerStatus.SkillType skillToEquip = (PlayerStatus.SkillType)skillTypeIndex;
 
-        // 1. Cek apakah skill ini udah dipasang di slot lain (Anti-Duplikat)
+
         if (playerStatus.HasSkill(skillToEquip))
         {
             Debug.LogWarning("Lu udah pasang skill ini cok! Gak bisa dipasang dobel!");
             return;
         }
 
-        // 2. Cari slot PERTAMA yang TERBUKA dan KOSONG
+
         for (int i = 0; i < 4; i++)
         {
             bool isUnlocked = playerStatus.currentLevel >= slotUnlockLevels[i];
 
             if (isUnlocked && playerStatus.equippedSkills[i] == PlayerStatus.SkillType.None)
             {
-                // Pasang skill ke slot ini
+
                 playerStatus.equippedSkills[i] = skillToEquip;
                 Debug.Log($"Skill {skillToEquip} berhasil dipasang ke Slot {i + 1}");
-                return; // Sukses, langsung keluar dari fungsi
+                NotificationLogManager.Instance.AddLog($"Skill {skillToEquip} Activated!", Color.green);
+                return;
             }
         }
 
         Debug.LogWarning("Semua slot lu udah penuh atau belum kebuka cok!");
     }
 
-    // ========================================================
-    // FUNGSI UNTUK MENGHAPUS SKILL (UNEQUIP) SAAT SLOT DIKLIK
-    // ========================================================
+
     public void UnequipSlot(int slotIndex)
     {
-        // Pastikan slotnya emang kebuka dan ada isinya
+
         if (playerStatus.currentLevel >= slotUnlockLevels[slotIndex])
         {
             if (playerStatus.equippedSkills[slotIndex] != PlayerStatus.SkillType.None)
@@ -139,7 +134,7 @@ public class UISkillManager : MonoBehaviour
         }
     }
 
-    // Helper functions biar gampang dicolok di Unity Editor Button OnClick()
+
     public void ClickAddIronWill() { EquipSkill((int)PlayerStatus.SkillType.IronWill); }
     public void ClickAddDancingWaves() { EquipSkill((int)PlayerStatus.SkillType.DancingWaves); }
     public void ClickAddIronBody() { EquipSkill((int)PlayerStatus.SkillType.IronBody); }

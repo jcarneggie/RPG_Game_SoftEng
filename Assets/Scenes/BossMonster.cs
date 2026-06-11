@@ -3,7 +3,7 @@ using UnityEngine;
 public class BossMonster : MonoBehaviour
 {
     [Header("--- Monster Stats ---")]
-    public string monsterName = "Virus King Boss";
+    public string monsterName = "Delta Boss";
     public float maxHp = 500f;
     public float currentHp;
     public float attack = 150f;
@@ -15,7 +15,7 @@ public class BossMonster : MonoBehaviour
     [Header("--- Rewards Drop Prefabs ---")]
     public GameObject coinPrefab;
     public GameObject xpPrefab;
-    public GameObject diamondPrefab; // SAKTI: Prefab Diamond khusus dropan Bos
+    public GameObject diamondPrefab;
 
     [Header("--- UI References (Sistem Baru) ---")]
     [Tooltip("Tarik objek Slider HP Monster ke sini")]
@@ -26,22 +26,22 @@ public class BossMonster : MonoBehaviour
     [SerializeField] private float floatHeight = 0.2f;
 
     private Vector3 startPos;
-    private Vector3 initialHierarchyPos; // SAKTI: Untuk mencatat koordinat mutlak pas ditaro di Hierarchy awal game
+    private Vector3 initialHierarchyPos;
     private bool isMyTurnToFight = false;
 
     void Start()
     {
         currentHp = maxHp;
         startPos = transform.position;
-        initialHierarchyPos = transform.position; // Kunci posisi murni saat fajar pertama game dimulai
+        initialHierarchyPos = transform.position;
 
-        // Set nilai awal bar darah saat monster muncul di layar
+
         if (monsterHpBar != null) monsterHpBar.UpdateValue(currentHp, maxHp);
     }
 
     void Update()
     {
-        // SAKTI: Mengacu ke BossGameplayManager biar Bos tetep jalan kiri bareng map nyamperin player
+
         if (BossGameplayManager.Instance != null && BossGameplayManager.Instance.IsMapMoving)
         {
             transform.Translate(Vector3.left * BossGameplayManager.Instance.MapSpeed * Time.deltaTime, Space.World);
@@ -61,7 +61,7 @@ public class BossMonster : MonoBehaviour
     {
         currentHp -= damage;
 
-        // UPDATE VISUAL BAR DARAH MONSTER TIAP DIKETOK PLAYER
+
         if (monsterHpBar != null) monsterHpBar.UpdateValue(currentHp, maxHp);
 
         if (currentHp <= 0) Die();
@@ -69,29 +69,35 @@ public class BossMonster : MonoBehaviour
 
     private void Die()
     {
-        // SAKTI: Drop Koin, XP, dan Diamond secara instan pas Bos mampus
+
         if (coinPrefab != null) Instantiate(coinPrefab, transform.position + Vector3.up, Quaternion.identity);
         if (xpPrefab != null) Instantiate(xpPrefab, transform.position + Vector3.down, Quaternion.identity);
         if (diamondPrefab != null) Instantiate(diamondPrefab, transform.position + Vector3.right, Quaternion.identity);
+        if (NotificationLogManager.Instance != null)
+        {
 
-        // Lapor ke manager khusus stage bos bahwa bos telah tewas
+            NotificationLogManager.Instance.AddLog($"Killed {monsterName}", Color.cyan);
+
+            NotificationLogManager.Instance.AddLog("Virus Contamination Added +0.1%", Color.red);
+        }
+
         if (BossGameplayManager.Instance != null)
         {
             BossGameplayManager.Instance.OnBossDefeated();
         }
 
-        // JANGAN DI-DESTROY, Cukup matikan biar data drop dan settingan lu selamat
+
         gameObject.SetActive(false);
     }
 
     public void ResetMonster()
     {
-        transform.position = initialHierarchyPos; // Teleport balik ke koordinat tanah aslinya di Hierarchy
-        startPos = initialHierarchyPos;           // Reset acuan kalkulasi translate jalan kirinya
-        currentHp = maxHp;                        // Darah penuh lagi
+        transform.position = initialHierarchyPos; 
+        startPos = initialHierarchyPos;           
+        currentHp = maxHp;                        
         isMyTurnToFight = false;
 
-        if (monsterHpBar != null) monsterHpBar.UpdateValue(currentHp, maxHp); // Bar darah penuh lagi
-        gameObject.SetActive(true);               // Munculkan kembali fisiknya di layar
+        if (monsterHpBar != null) monsterHpBar.UpdateValue(currentHp, maxHp);
+        gameObject.SetActive(true);              
     }
 }
